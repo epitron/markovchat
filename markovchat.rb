@@ -92,15 +92,15 @@ class MarkovChat
   end
   
   def save
-    tempfile = "#{dbfile}.temporary"
+    tempfile = "#{dbfile}.temp"
     if File.exists?(tempfile)
-      puts "+ Error! #{tempfile} already exists."
-      puts "  (Either we're currently saving, or you need to delete that.)"
+      puts "+ Error! Can't save because #{tempfile.inspect} already exists."
+      puts "  (Either we're already saving in the background, or you crashed before and"
+      puts "   you should delete that file.)"
       return
     end
     
     fork do
-      tempfile = "#{dbfile}.temporary"
       puts "+ Writing #{tempfile} (in background)..."
       open(tempfile, "wb") do |f|
         f.write Marshal.dump([@nextwords, @nextwords_total])
@@ -133,9 +133,7 @@ end
 
 
 
-
 if $0 == __FILE__
-  
   m = MarkovChat.new
   
   m.add_sentence("hi there how are you")
