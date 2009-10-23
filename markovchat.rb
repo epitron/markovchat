@@ -2,11 +2,10 @@ require 'pp'
 
 class MarkovChat
 
-  @@dbfile = "markovchat.db"
+  attr_accessor :dbfile
 
-  attr_accessor :nextwords, :nextwords_total
-
-  def initialize
+  def initialize(dbfile="default.db")
+    @dbfile = dbfile
     @nextwords = {}
     @nextwords_total = {}
   end
@@ -93,22 +92,27 @@ class MarkovChat
   end
   
   def save
-    puts "+ Forking a background save..."
+    tempfile = "#{dbfile}.temporary"
+    if File.exists?(tempfile)
+      puts "+ Error! #{tempfile} already exists."
+      puts "  (Either we're currently saving, or you need to delete that.)"
+      return
+    end
     
     fork do
-      tempfile = "#{@@dbfile}.temporary"
-      puts "+ Writing #{tempfile}..."
+      tempfile = "#{dbfile}.temporary"
+      puts "+ Writing #{tempfile} (in background)..."
       open(tempfile, "wb") do |f|
         f.write Marshal.dump([@nextwords, @nextwords_total])
       end
       
-      if File.exists?(@@dbfile)
-        puts "  |_ backing up #{@@dbfile} (to .bak)..."
-        File.rename(@@dbfile, "#{@@dbfile}.bak")
+      if File.exists?(dbfile)
+        puts "  |_ backing up #{dbfile} (to .bak)..."
+        File.rename(dbfile, "#{dbfile}.bak")
       end
       
       puts "  |_ moving #{tempfile} into place"
-      File.rename(tempfile, @@dbfile)
+      File.rename(tempfile, dbfile)
       
       puts "  |_ Done!"
       puts
@@ -117,8 +121,8 @@ class MarkovChat
   end
   
   def load
-    puts "Loading #{@@dbfile}..."
-    open(@@dbfile) do |f|
+    puts "Loading #{dbfile}..."
+    open(dbfile) do |f|
       @nextwords, @nextwords_total = Marshal.load(f.read)
     end
     puts "  |_ Done! #{@nextwords.size} pairs..."
