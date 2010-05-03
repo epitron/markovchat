@@ -1,24 +1,24 @@
-module HashWithCachedKeys
-
-  def self.included(klass)
-    klass.extend(ClassMethods)
-    klass.invalidate_on :[]=, :update!, :merge!
-  end
-
-  module ClassMethods
+#
+# A Hash without the .keys performance issue.
+#
+class CachedHash < Hash
     
-    def invalidate_on(*meths)
-      for meth in meths
-        class_eval %{
-          def #{meth}(*args)
-            invalidate!
-            super(*args)
-          end
-        }
-      end
+  def self.invalidate_on(*meths)
+    for meth in meths
+      class_eval %{
+        def #{meth}(*args)
+          invalidate!
+          super(*args)
+        end
+      }
     end
-    
   end
+  
+  
+  #
+  # We definitely need to invalidate on more things.
+  #
+  invalidate_on :[]=, :update!, :merge!
 
   ############################################################
   ## Instance Methods
@@ -28,7 +28,6 @@ module HashWithCachedKeys
   end
 
   def invalidate!
-    puts "INVALIDATE!"
     @cached_keys = nil
     self
   end
@@ -52,11 +51,6 @@ module HashWithCachedKeys
     nil
   end
   
-end
-
-
-class CachedHash < Hash
-  include HashWithCachedKeys
 end
 
 class Hash
