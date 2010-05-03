@@ -1,4 +1,5 @@
 require 'pp'
+require 'cached_hash'
 
 class MarkovChat
 
@@ -6,23 +7,38 @@ class MarkovChat
 
   def initialize(dbfile="default.db")
     @dbfile = dbfile
-    @nextwords = {}
+    @nextwords = CachedHash.new
     @nextwords_total = {}
+  end
+  
+  def nw
+    @nextwords
   end
 
   def random_pair
-    ks = @nextwords.keys
-    ks[ rand(ks.size) ]
+    @nextwords.random_key
+  end
+  
+  def pair_starting_with(word)
+    word = word.to_sym
+    @nextwords.find_random_key{|k| k.first == word}
   end
 
   def random_start
-    ks = @nextwords.keys.select{|ws| ws[0] == nil }
-    w0, w1 = ks[ rand(ks.size) ]
+    until (ks = random_pair).first.nil?; end
+    #ks = @nextwords.keys.select{|ws| ws[0] == nil }
+    #w0, w1 = ks[ rand(ks.size) ]
+    w0, w1 = ks
     [w1, nextword(w0,w1)]
   end
 
   def chat(*args)
-    args      = random_start unless args.size == 2
+    args = pair_starting_with(args.first) if args.size == 1
+
+    while args.size != 2 or args.any?{|arg| arg.nil?} 
+      args = random_start
+    end
+    
     w1, w2    = args.map{|w| w.to_sym}
     sentence  = [w1, w2]
 
@@ -86,24 +102,33 @@ class MarkovChat
     puts "Contents of markov database:"
     puts "="*50
     pp [:nextwords, @nextwords]
-    #pp [:nextwords_total, @nextwords_total]
     puts
   end
 
-  #
-  # Save the database in the background (by forking) 
-  #   
-  def save
-    tempfile = "#{dbfile}.temp"
-    if File.exists?(tempfile)
+  
+  def locked?
+    File.exists?(tempfile)
+  end
+  
+  def tempfile
+    "#{dbfile}.temp"
+  end
+  
+  def check_tempfile
+    if locked? 
       puts "+ Error! Can't save because #{tempfile.inspect} already exists."
       puts "  (Either we're already saving in the background, or you crashed before and"
       puts "   you should delete that file.)"
       return
+    else
+      tempfile
     end
-    
-    fork do
-      puts "+ Writing #{tempfile} (in background)..."
+  end
+
+  
+  def save
+    if check_tempfile
+      puts "+ Writing #{tempfile}..."
       open(tempfile, "wb") do |f|
         f.write Marshal.dump([@nextwords, @nextwords_total])
       end
@@ -119,6 +144,16 @@ class MarkovChat
       puts "  |_ Done!"
       puts
     end
+  end
+  
+  #
+  # Save the database in the background (by forking) 
+  #
+  def background_save
+    
+    fork do
+      save
+    end
     
   end
   
@@ -127,6 +162,12 @@ class MarkovChat
     open(dbfile) do |f|
       @nextwords, @nextwords_total = Marshal.load(f.read)
     end
+    
+    unless @nextwords.is_a? CachedHash
+      puts "*** Upgrading Hash to a CachedHash! ***"
+      @nextwords = @nextwords.to_cached_hash
+    end
+    
     puts "  |_ Done! #{@nextwords.size} pairs..."
     puts
   end
@@ -148,13 +189,22 @@ if $0 == __FILE__
   m.add_sentence("hi there you are a manly man")
   
   m.save
-  puts "hit enter to continue..."; gets
+  
+  m.background_save
+  
+  #puts "hit enter to continue..."; gets
   
   n = MarkovChat.new
+  while m.locked?; sleep 0.1; end
+  puts "lock released!"
   n.load
   n.dump
   
+  p [:pair_starting_with, n.pair_starting_with("hi")]
+  p [:pair_starting_with, n.pair_starting_with("hi")]
+  
   p n.chat("hi", "there")
+  
   
   5.times do
     p n.chat
