@@ -17,7 +17,7 @@ class MarkovChat
 
   def random_start
     ks = @nextwords.keys.select{|ws| ws[0] == nil }
-    w0, w1= ks[ rand(ks.size) ]
+    w0, w1 = ks[ rand(ks.size) ]
     [w1, nextword(w0,w1)]
   end
 
@@ -26,8 +26,7 @@ class MarkovChat
     w1, w2    = args.map{|w| w.to_sym}
     sentence  = [w1, w2]
 
-    loop do 
-      break unless nw = nextword(w1, w2)
+    while nw = nextword(w1, w2)
       sentence << nw
       w1,w2 = w2,nw
     end
@@ -90,7 +89,10 @@ class MarkovChat
     #pp [:nextwords_total, @nextwords_total]
     puts
   end
-  
+
+  #
+  # Save the database in the background (by forking) 
+  #   
   def save
     tempfile = "#{dbfile}.temp"
     if File.exists?(tempfile)
@@ -134,6 +136,7 @@ end
 
 
 if $0 == __FILE__
+
   m = MarkovChat.new
   
   m.add_sentence("hi there how are you")
