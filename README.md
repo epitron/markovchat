@@ -23,7 +23,11 @@ The file format is a standard Ruby `Hash` serialized to binary using `Marshal`. 
     m.add_sentence("hi there you are a manly man")
 
     5.times { p n.chat }
+    
+## Generate sentences that start with specific words:
 
+    m.chat("hi", "there")
+    
 ## Saving the markov chain:
     
     m.save
@@ -42,5 +46,11 @@ The file format is a standard Ruby `Hash` serialized to binary using `Marshal`. 
     m = MarkovChat.new("oldchain.db")
     m.load
     
+## Changing the db file mid-stream:
+
+    m = Markovchat.new("oldchain.rb")
+    <.. do some stuff ..>
+    m.dbfile = "newchain.db"
+    m.save
 
     
