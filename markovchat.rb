@@ -11,6 +11,10 @@ class MarkovChat
     @nextwords_total = {}
   end
   
+  def database
+    @nextwords
+  end
+  
   def nw
     @nextwords
   end

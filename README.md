@@ -53,4 +53,12 @@ The file format is a standard Ruby `Hash` serialized to binary using `Marshal`. 
     m.dbfile = "newchain.db"
     m.save
 
+## Accessing the internal database (as a Ruby `Hash`):
+
+    m.database
+
+## Dumping the database to JSON:
+
+    require 'json'
+    open("markov.json", "w") { |f| f.write( JSON.dump m.database ) }
     
