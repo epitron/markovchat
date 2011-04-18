@@ -5,7 +5,7 @@ class MarkovChat
 
   attr_accessor :dbfile
 
-  def initialize(dbfile="default.db")
+  def initialize(dbfile="markov.db")
     @dbfile = dbfile
     @nextwords = CachedHash.new
     @nextwords_total = {}

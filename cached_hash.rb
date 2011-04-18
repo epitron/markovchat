@@ -15,9 +15,7 @@ class CachedHash < Hash
   end
   
   
-  #
-  # We definitely need to invalidate on more things.
-  #
+  # TODO: invalidate on more things!
   invalidate_on :[]=, :update!, :merge!
 
   ############################################################
