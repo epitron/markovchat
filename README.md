@@ -48,7 +48,7 @@ The file format is a standard Ruby `Hash` serialized to binary using `Marshal`. 
     
 ## Changing the db file mid-stream:
 
-    m = Markovchat.new("oldchain.rb")
+    m = Markovchat.new("oldchain.db")
     <.. do some stuff ..>
     m.dbfile = "newchain.db"
     m.save
