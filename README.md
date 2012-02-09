@@ -1,8 +1,8 @@
 # MarkovChat for Ruby
 
-A markov chain for sentences. 
+A markov chain for sentences. (For the uninitiated, a Markov chain is a probabilistic model of a thing which can generate random examples of that thing. In this case, it can eat sentences, and produce new random sentences.)
 
-To train it, you shove in a bunch of sentences. Then, it lets you output probabilistic sentences!
+To train the model, you shove in a bunch of sentences. Then, it will generate probabilistic sentences!
 
 Optionally, you can save the markov chain to a file for later. (The default filename is `markov.db`.)
 
@@ -10,55 +10,73 @@ The file format is a standard Ruby `Hash` serialized to binary using `Marshal`. 
 
 # Examples
 
-## Initializing, training, and generating random chatter:
+## Initialize, train, and generate random sentences:
 
-    m = MarkovChat.new
-    
-    m.add_sentence("hi there how are you")
-    m.add_sentence("how is trix doing")
-    m.add_sentence("hey dude what's up")
-    m.add_sentence("totally man")
-    m.add_sentence("hi there you are groovy")
-    m.add_sentence("hi there you are amazing")
-    m.add_sentence("hi there you are a manly man")
+```ruby
+m = MarkovChat.new
 
-    5.times { p n.chat }
-    
+m.add_sentence("hi there how are you")
+m.add_sentence("how is trix doing")
+m.add_sentence("hey dude what's up")
+m.add_sentence("totally man")
+m.add_sentence("hi there you are groovy")
+m.add_sentence("hi there you are amazing")
+m.add_sentence("hi there you are a manly man")
+
+5.times { p n.chat }
+```    
+
 ## Generate sentences that start with specific words:
 
-    m.chat("hi", "there")
+```ruby
+m.chat("hi", "there")
+```
     
-## Saving the markov chain:
+## Save the markov chain:
     
-    m.save
+```ruby
+m.save
+```
 
-## Saving the markov chain to `CNN.db`:
+## Save the markov chain to `CNN.db`:
     
-    m = MarkovChat.new("CNN.db")
-    m.save
+```ruby
+m = MarkovChat.new("CNN.db")
+m.save
+```
     
-## Saving the markov chain in a forked background process (so it won't freeze your IRC bot):    
+## Save the markov chain in a forked background process (so it won't freeze your IRC bot):
+
+```ruby
+m.background_save
+```
+## Load the markov chain from a file:
+
+```ruby
+m = MarkovChat.new("oldchain.db")
+m.load
+```
     
-    m.background_save
+## Change the db filename mid-stream:
 
-## Loading the markov chain from a file:
+```ruby
+m = Markovchat.new("oldchain.db")
+<.. do some stuff ..>
+m.dbfile = "newchain.db"
+m.save
+```
 
-    m = MarkovChat.new("oldchain.db")
-    m.load
-    
-## Changing the db file mid-stream:
+## Access the internal database (as a Ruby `Hash`):
 
-    m = Markovchat.new("oldchain.db")
-    <.. do some stuff ..>
-    m.dbfile = "newchain.db"
-    m.save
+```ruby
+m.database
+```
 
-## Accessing the internal database (as a Ruby `Hash`):
+## Dump the database to a JSON file:
 
-    m.database
-
-## Dumping the database to JSON:
-
-    require 'json'
-    open("markov.json", "w") { |f| f.write( JSON.dump m.database ) }
-    
+```ruby
+require 'json'
+open("markov.json", "w") do |f|
+  f.write( JSON.dump m.database )
+end
+```
