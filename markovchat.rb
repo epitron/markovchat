@@ -109,29 +109,22 @@ class MarkovChat
     puts
   end
 
+  def tempfile
+    "#{dbfile}.temp"
+  end
   
   def locked?
     File.exists?(tempfile)
   end
   
-  def tempfile
-    "#{dbfile}.temp"
-  end
-  
-  def check_tempfile
-    if locked? 
+  def save
+    if locked?
       puts "+ Error! Can't save because #{tempfile.inspect} already exists."
       puts "  (Either we're already saving in the background, or you crashed before and"
       puts "   you should delete that file.)"
-      return
+      
+      false
     else
-      tempfile
-    end
-  end
-
-  
-  def save
-    if check_tempfile
       puts "+ Writing #{tempfile}..."
       open(tempfile, "wb") do |f|
         f.write Marshal.dump([@nextwords, @nextwords_total])
@@ -147,6 +140,8 @@ class MarkovChat
       
       puts "  |_ Done!"
       puts
+
+      true
     end
   end
   
@@ -154,11 +149,7 @@ class MarkovChat
   # Save the database in the background (by forking) 
   #
   def background_save
-    
-    fork do
-      save
-    end
-    
+    Process.detach( fork { save } )
   end
   
   def load
