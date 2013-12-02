@@ -148,8 +148,9 @@ class MarkovChat
   #
   # Save the database in the background (by forking) 
   #
+  # Changed fork{} to thread, since fork is not cross platform friendly 
   def background_save
-    Process.detach( fork { save } )
+		t = Thread.new { save }
   end
   
   def load
